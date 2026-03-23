@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Évaluation — AVORUBY CASH</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --ink: #0d1117; --parchment: #f5f0e8; --sage: #4a7c59;
+      --sage-light: #7aab88; --clay: #c4622d; --gold: #c9a84c;
+      --cream: #faf7f2; --mist: #e8e2d9; --error: #c0392b;
+    }
+    body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--ink); min-height: 100vh; }
+
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.2rem 3rem;
+      background: rgba(245,240,232,0.9); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--mist);
+    }
+    .nav-logo { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 700; color: var(--ink); text-decoration: none; }
+    .nav-logo span { color: var(--sage); }
+    .nav-back { font-size: 0.8rem; color: #667; text-decoration: none; display: flex; align-items: center; gap: 0.4rem; }
+    .nav-back:hover { color: var(--sage); }
+
+    .page-wrapper {
+      max-width: 760px; margin: 0 auto;
+      padding: 7rem 2rem 4rem;
+    }
+
+    .page-header { margin-bottom: 3rem; }
+    .page-tag {
+      font-size: 0.72rem; letter-spacing: 0.15em;
+      text-transform: uppercase; color: var(--sage);
+      margin-bottom: 0.8rem;
+    }
+    .page-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.8rem; font-weight: 300; line-height: 1.1;
+    }
+    .page-title strong { font-weight: 700; }
+    .page-sub { font-size: 0.9rem; color: #667; margin-top: 0.8rem; line-height: 1.6; }
+
+    /* Progress Steps */
+    .steps {
+      display: flex; gap: 0; margin-bottom: 3rem;
+      border: 1px solid var(--mist); border-radius: 2px; overflow: hidden;
+    }
+    .step {
+      flex: 1; padding: 0.8rem 1rem;
+      display: flex; align-items: center; gap: 0.6rem;
+      background: var(--cream); border-right: 1px solid var(--mist);
+      font-size: 0.78rem; color: #aaa; transition: all 0.3s;
+    }
+    .step:last-child { border-right: none; }
+    .step.active { background: var(--sage); color: white; }
+    .step.done { background: var(--mist); color: var(--sage); }
+    .step-num {
+      width: 20px; height: 20px; border-radius: 50%;
+      border: 1px solid currentColor;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.65rem; font-weight: 600; flex-shrink: 0;
+    }
+    .step.active .step-num { background: rgba(255,255,255,0.2); border-color: white; }
+
+    /* Form Sections */
+    .form-section {
+      background: white;
+      border: 1px solid var(--mist);
+      border-radius: 2px;
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+
+    .section-head {
+      padding: 1.2rem 1.8rem;
+      background: var(--ink);
+      display: flex; align-items: center; gap: 1rem;
+    }
+    .section-icon { font-size: 1.2rem; }
+    .section-title-sm {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem; font-weight: 600; color: white;
+    }
+    .section-desc-sm { font-size: 0.72rem; color: rgba(255,255,255,0.4); }
+
+    .section-body { padding: 1.8rem; }
+
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin-bottom: 1.2rem; }
+    .field-row.single { grid-template-columns: 1fr; }
+    .field-row.three { grid-template-columns: 1fr 1fr 1fr; }
+
+    .field { display: flex; flex-direction: column; gap: 0.4rem; }
+    .field label {
+      font-size: 0.75rem; font-weight: 500;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: #667;
+    }
+    .field input, .field select {
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--mist);
+      border-radius: 2px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      color: var(--ink);
+      background: var(--cream);
+      transition: border-color 0.2s, background 0.2s;
+      appearance: none;
+    }
+    .field input:focus, .field select:focus {
+      outline: none;
+      border-color: var(--sage);
+      background: white;
+    }
+    .field input::placeholder { color: #bbb; }
+
+    /* Toggle switches */
+    .toggle-group {
+      display: flex; flex-direction: column; gap: 0.8rem;
+    }
+    .toggle-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.9rem 1rem;
+      border: 1px solid var(--mist); border-radius: 2px;
+      background: var(--cream);
+      transition: all 0.2s; cursor: pointer;
+    }
+    .toggle-item:hover { border-color: var(--sage); }
+    .toggle-item.on { border-color: var(--sage); background: rgba(74,124,89,0.04); }
+
+    .toggle-info { display: flex; flex-direction: column; gap: 0.2rem; }
+    .toggle-name { font-size: 0.88rem; font-weight: 500; }
+    .toggle-desc { font-size: 0.72rem; color: #889; }
+    .toggle-weight {
+      font-size: 0.7rem; color: var(--sage); font-weight: 600;
+      background: rgba(74,124,89,0.1); padding: 0.2rem 0.5rem; border-radius: 20px;
+    }
+
+    .toggle-switch {
+      position: relative; width: 44px; height: 24px; flex-shrink: 0;
+    }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute; inset: 0;
+      background: #ddd; border-radius: 24px;
+      cursor: pointer; transition: 0.3s;
+    }
+    .toggle-slider::before {
+      content: ''; position: absolute;
+      width: 18px; height: 18px; left: 3px; bottom: 3px;
+      background: white; border-radius: 50%;
+      transition: 0.3s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    input:checked + .toggle-slider { background: var(--sage); }
+    input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+    /* IoT counter */
+    .counter {
+      display: flex; align-items: center; gap: 0; border: 1px solid var(--mist); border-radius: 2px; overflow: hidden;
+    }
+    .counter-btn {
+      width: 40px; height: 40px; border: none;
+      background: var(--mist); cursor: pointer;
+      font-size: 1.1rem; display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s; color: var(--ink);
+    }
+    .counter-btn:hover { background: var(--sage); color: white; }
+    .counter-val {
+      flex: 1; text-align: center; font-size: 1rem; font-weight: 500;
+      padding: 0.5rem; min-width: 50px;
+    }
+
+    /* Gamma Preview */
+    .gamma-preview {
+      background: var(--ink);
+      border-radius: 2px;
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .gamma-label { font-size: 0.72rem; color: rgba(255,255,255,0.4); letter-spacing: 0.1em; text-transform: uppercase; }
+    .gamma-value {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.5rem; font-weight: 700; color: var(--gold);
+    }
+    .gamma-bar-wrap { flex: 1; margin: 0 2rem; }
+    .gamma-bar-bg { height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; }
+    .gamma-bar-fill {
+      height: 4px; background: var(--gold); border-radius: 2px;
+      transition: width 0.4s ease;
+    }
+    .gamma-desc { font-size: 0.75rem; color: rgba(255,255,255,0.4); margin-top: 0.4rem; }
+
+    /* Submit */
+    .submit-area { margin-top: 2rem; display: flex; gap: 1rem; align-items: center; }
+    .btn-submit {
+      background: var(--sage); color: white;
+      border: none; cursor: pointer;
+      padding: 1rem 3rem; border-radius: 2px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem; font-weight: 500;
+      letter-spacing: 0.04em;
+      transition: all 0.25s;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .btn-submit:hover { background: var(--ink); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .btn-reset {
+      background: none; border: 1px solid var(--mist);
+      color: #889; padding: 1rem 1.5rem; border-radius: 2px;
+      cursor: pointer; font-size: 0.85rem; transition: all 0.2s;
+    }
+    .btn-reset:hover { border-color: #889; }
+
+    /* Loading */
+    .loading-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(13,17,23,0.85);
+      z-index: 200;
+      align-items: center; justify-content: center;
+      flex-direction: column; gap: 1.5rem;
+    }
+    .loading-overlay.show { display: flex; }
+    .loader {
+      width: 48px; height: 48px;
+      border: 2px solid rgba(255,255,255,0.1);
+      border-top-color: var(--sage-light);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { color: white; font-size: 0.9rem; }
+    .loading-sub { color: rgba(255,255,255,0.4); font-size: 0.75rem; }
+
+    @media (max-width: 600px) {
+      .field-row, .field-row.three { grid-template-columns: 1fr; }
+      nav { padding: 1rem 1.5rem; }
+      .page-wrapper { padding: 6rem 1rem 3rem; }
+      .steps { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">AVORUBY <span>CASH</span></a>
+  <a href="/" class="nav-back">← Retour accueil</a>
+</nav>
+
+<div class="page-wrapper">
+  <div class="page-header">
+    <div class="page-tag">Évaluation · Scoring SABC</div>
+    <h1 class="page-title">Votre exploitation,<br><strong>évaluée en secondes.</strong></h1>
+    <p class="page-sub">Renseignez les caractéristiques de votre ferme pour obtenir votre score de crédit agricole.</p>
+  </div>
+
+  <!-- Steps -->
+  <div class="steps">
+    <div class="step active" id="step1">
+      <div class="step-num">1</div>
+      <span>Exploitation</span>
+    </div>
+    <div class="step" id="step2">
+      <div class="step-num">2</div>
+      <span>Équipements</span>
+    </div>
+    <div class="step" id="step3">
+      <div class="step-num">3</div>
+      <span>Résultat</span>
+    </div>
+  </div>
+
+  <!-- Section 1 — Exploitation -->
+  <div class="form-section">
+    <div class="section-head">
+      <span class="section-icon">🌱</span>
+      <div>
+        <div class="section-title-sm">Informations de l'exploitation</div>
+        <div class="section-desc-sm">Culture, superficie et localisation</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="field-row">
+        <div class="field">
+          <label>Type de culture</label>
+          <select id="culture">
+            <option value="">-- Sélectionner --</option>
+            <option value="Avocat">🥑 Avocat</option>
+            <option value="Fruits_Rouges">🫐 Fruits Rouges</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Superficie (hectares)</label>
+          <input type="number" id="hectares" placeholder="Ex: 5.5" min="0.1" step="0.1">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Région</label>
+          <select id="localisation">
+            <option value="">-- Sélectionner --</option>
+            <option value="Agadir">Agadir · Souss-Massa</option>
+            <option value="Marrakech">Marrakech · Tensift</option>
+            <option value="Kenitra">Kénitra · Gharb</option>
+            <option value="Larache">Larache · Loukkos</option>
+            <option value="Moulay Bousselham">Moulay Bousselham</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Type de sol</label>
+          <select id="sol">
+            <option value="">-- Sélectionner --</option>
+            <option value="Argileux">Argileux</option>
+            <option value="Limoneux">Limoneux</option>
+            <option value="Sableux">Sableux</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 2 — Équipements -->
+  <div class="form-section">
+    <div class="section-head">
+      <span class="section-icon">⚙️</span>
+      <div>
+        <div class="section-title-sm">Niveau technologique · Γ Résilience</div>
+        <div class="section-desc-sm">Équipements présents sur l'exploitation</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="toggle-group">
+        <label class="toggle-item" id="item-irrigation">
+          <div class="toggle-info">
+            <span class="toggle-name">💧 Irrigation de précision</span>
+            <span class="toggle-desc">Système goutte-à-goutte avec régulation automatique</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.8rem">
+            <span class="toggle-weight">+0.25</span>
+            <div class="toggle-switch">
+              <input type="checkbox" id="irrigation" onchange="updateGamma()">
+              <span class="toggle-slider"></span>
+            </div>
+          </div>
+        </label>
+
+        <label class="toggle-item" id="item-solaire">
+          <div class="toggle-info">
+            <span class="toggle-name">☀️ Énergie solaire</span>
+            <span class="toggle-desc">Panneaux photovoltaïques pour pompage ou stockage</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.8rem">
+            <span class="toggle-weight">+0.15</span>
+            <div class="toggle-switch">
+              <input type="checkbox" id="solaire" onchange="updateGamma()">
+              <span class="toggle-slider"></span>
+            </div>
+          </div>
+        </label>
+
+        <label class="toggle-item" id="item-filets">
+          <div class="toggle-info">
+            <span class="toggle-name">🔲 Filets anti-grêle / Serres</span>
+            <span class="toggle-desc">Protection physique des cultures contre aléas climatiques</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.8rem">
+            <span class="toggle-weight">+0.40</span>
+            <div class="toggle-switch">
+              <input type="checkbox" id="filets" onchange="updateGamma()">
+              <span class="toggle-slider"></span>
+            </div>
+          </div>
+        </label>
+      </div>
+
+      <!-- IoT Counter -->
+      <div style="margin-top:1rem">
+        <div class="toggle-item" style="cursor:default">
+          <div class="toggle-info">
+            <span class="toggle-name">📡 Capteurs IoT / Sondes</span>
+            <span class="toggle-desc">Sondes sol, météo, humidité connectées</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.8rem">
+            <span class="toggle-weight">+0.20</span>
+            <div class="counter">
+              <button class="counter-btn" onclick="changeIoT(-1)">−</button>
+              <span class="counter-val" id="iot-display">0</span>
+              <button class="counter-btn" onclick="changeIoT(1)">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gamma Preview -->
+      <div class="gamma-preview">
+        <div>
+          <div class="gamma-label">Score Γ Résilience</div>
+          <div class="gamma-value" id="gamma-display">0.00</div>
+        </div>
+        <div class="gamma-bar-wrap">
+          <div class="gamma-bar-bg">
+            <div class="gamma-bar-fill" id="gamma-bar" style="width:0%"></div>
+          </div>
+          <div class="gamma-desc" id="gamma-desc">Aucun équipement renseigné</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Submit -->
+  <div class="submit-area">
+    <button class="btn-submit" id="submit-btn" onclick="submitForm()">
+      Calculer le score SABC
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </button>
+    <button class="btn-reset" onclick="resetForm()">Réinitialiser</button>
+  </div>
+</div>
+
+<!-- Loading -->
+<div class="loading-overlay" id="loading">
+  <div class="loader"></div>
+  <div class="loading-text">Analyse en cours…</div>
+  <div class="loading-sub">LSTM · XGBoost · Calcul SABC</div>
+</div>
+
+<script>
+  let iotCount = 0;
+
+
+  function changeIoT(delta) {
+    iotCount = Math.max(0, Math.min(5, iotCount + delta));
+    document.getElementById('iot-display').textContent = iotCount;
+    updateGamma();
+  }
+
+  function updateGamma() {
+    const irrigation = document.getElementById('irrigation').checked;
+    const solaire = document.getElementById('solaire').checked;
+    const filets = document.getElementById('filets').checked;
+
+    // Update toggle visual
+    document.getElementById('item-irrigation').classList.toggle('on', irrigation);
+    document.getElementById('item-solaire').classList.toggle('on', solaire);
+    document.getElementById('item-filets').classList.toggle('on', filets);
+
+    const gamma = (
+      (irrigation ? 0.25 : 0) +
+      (solaire ? 0.15 : 0) +
+      (iotCount > 0 ? 0.20 : 0) +
+      (filets ? 0.40 : 0)
+    );
+
+    document.getElementById('gamma-display').textContent = gamma.toFixed(2);
+    document.getElementById('gamma-bar').style.width = (gamma * 100) + '%';
+
+    let desc = '';
+    if (gamma === 0) desc = 'Aucun équipement — risque maximum';
+    else if (gamma < 0.3) desc = 'Équipement minimal';
+    else if (gamma < 0.6) desc = 'Niveau intermédiaire';
+    else if (gamma < 0.9) desc = 'Bonne résilience technologique';
+    else desc = 'Exploitation très bien équipée ✓';
+
+    document.getElementById('gamma-desc').textContent = desc;
+  }
+
+  function submitForm() {
+    const culture = document.getElementById('culture').value;
+    const hectares = parseFloat(document.getElementById('hectares').value);
+    const localisation = document.getElementById('localisation').value;
+    const sol = document.getElementById('sol').value;
+
+    if (!culture || !hectares || !localisation || !sol) {
+      alert('Veuillez remplir tous les champs obligatoires.');
+      return;
+    }
+
+    const data = {
+      culture,
+      hectares,
+      localisation,
+      sol,
+      irrigation: document.getElementById('irrigation').checked ? 1 : 0,
+      solaire: document.getElementById('solaire').checked ? 1 : 0,
+      filets: document.getElementById('filets').checked ? 1 : 0,
+      iot: iotCount
+    };
+
+    document.getElementById('loading').classList.add('show');
+    document.getElementById('submit-btn').disabled = true;
+
+    // Mise à jour steps
+    document.getElementById('step1').classList.remove('active');
+    document.getElementById('step1').classList.add('done');
+    document.getElementById('step2').classList.add('active');
+
+    fetch('/predict', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    })
+    .then(r => r.json())
+    .then(result => {
+      sessionStorage.setItem('avoruby_result', JSON.stringify({...result, ...data}));
+      setTimeout(() => {
+        window.location.href = '/resultat';
+      }, 1500);
+    })
+    .catch(err => {
+      document.getElementById('loading').classList.remove('show');
+      document.getElementById('submit-btn').disabled = false;
+      alert('Erreur de calcul. Vérifiez que Flask est bien lancé.');
+    });
+  }
+
+  function resetForm() {
+    document.getElementById('culture').value = '';
+    document.getElementById('hectares').value = '';
+    document.getElementById('localisation').value = '';
+    document.getElementById('sol').value = '';
+    document.getElementById('irrigation').checked = false;
+    document.getElementById('solaire').checked = false;
+    document.getElementById('filets').checked = false;
+    iotCount = 0;
+    document.getElementById('iot-display').textContent = '0';
+    updateGamma();
+  }
+</script>
+</body>
+</html>

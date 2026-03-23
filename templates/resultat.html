@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Résultat SABC — AVORUBY CASH</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --ink: #0d1117; --parchment: #f5f0e8; --sage: #4a7c59;
+      --sage-light: #7aab88; --gold: #c9a84c; --cream: #faf7f2; --mist: #e8e2d9;
+      --approved: #2d7a4f; --conditional: #a07a20; --refused: #8b2020;
+    }
+    body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--ink); min-height: 100vh; }
+
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.2rem 3rem;
+      background: rgba(245,240,232,0.9); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--mist);
+    }
+    .nav-logo { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 700; color: var(--ink); text-decoration: none; }
+    .nav-logo span { color: var(--sage); }
+    .nav-new { font-size: 0.8rem; color: var(--sage); text-decoration: none; border: 1px solid var(--sage); padding: 0.4rem 1rem; border-radius: 2px; }
+    .nav-new:hover { background: var(--sage); color: white; }
+
+    .page-wrapper { max-width: 840px; margin: 0 auto; padding: 7rem 2rem 4rem; }
+
+    /* ── DECISION BANNER ── */
+    .decision-banner {
+      padding: 2.5rem 3rem;
+      border-radius: 2px;
+      margin-bottom: 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      position: relative; overflow: hidden;
+      animation: slideIn 0.6s ease forwards;
+    }
+    @keyframes slideIn { from { opacity:0; transform: translateY(20px); } to { opacity:1; transform: translateY(0); } }
+
+    .banner-approved { background: var(--approved); }
+    .banner-conditional { background: var(--conditional); }
+    .banner-refused { background: var(--refused); }
+
+    .banner-bg {
+      position: absolute; right: -20px; top: -20px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 10rem; font-weight: 700;
+      color: rgba(255,255,255,0.05);
+      pointer-events: none;
+    }
+
+    .banner-left { position: relative; z-index: 1; }
+    .banner-tag { font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.6); margin-bottom: 0.4rem; }
+    .banner-decision { font-family: 'Cormorant Garamond', serif; font-size: 2.5rem; font-weight: 700; color: white; }
+    .banner-message { font-size: 0.85rem; color: rgba(255,255,255,0.7); margin-top: 0.3rem; }
+
+    .banner-score { position: relative; z-index: 1; text-align: right; }
+    .score-label { font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.5); }
+    .score-value { font-family: 'Cormorant Garamond', serif; font-size: 5rem; font-weight: 700; color: white; line-height: 1; }
+    .score-max { font-size: 1rem; color: rgba(255,255,255,0.4); }
+
+    /* ── MOCK NOTICE ── */
+    .mock-notice {
+      background: rgba(201,168,76,0.1);
+      border: 1px solid rgba(201,168,76,0.3);
+      border-radius: 2px;
+      padding: 0.8rem 1.2rem;
+      margin-bottom: 2rem;
+      display: flex; align-items: center; gap: 0.8rem;
+      font-size: 0.78rem; color: #7a6020;
+    }
+    /* Cette notice disparaît quand is_mock = false */
+
+    /* ── METRICS GRID ── */
+    .metrics-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 2px; background: var(--mist);
+      margin-bottom: 2rem;
+      animation: slideIn 0.6s ease 0.2s both;
+    }
+
+    .metric {
+      background: white; padding: 1.5rem;
+      display: flex; flex-direction: column; gap: 0.3rem;
+    }
+    .metric-label { font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; color: #aaa; }
+    .metric-value { font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; font-weight: 700; color: var(--ink); }
+    .metric-unit { font-size: 0.72rem; color: #889; }
+
+    /* ── BREAKDOWN ── */
+    .breakdown {
+      background: white; border: 1px solid var(--mist);
+      border-radius: 2px; margin-bottom: 1.5rem;
+      animation: slideIn 0.6s ease 0.3s both;
+    }
+    .breakdown-head {
+      padding: 1.2rem 1.8rem;
+      border-bottom: 1px solid var(--mist);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .breakdown-title { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; font-weight: 600; }
+    .breakdown-body { padding: 1.5rem 1.8rem; }
+
+    .breakdown-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.7rem 0;
+      border-bottom: 1px solid var(--mist);
+    }
+    .breakdown-row:last-child { border-bottom: none; }
+    .row-left { display: flex; align-items: center; gap: 0.8rem; }
+    .row-icon { font-size: 1rem; }
+    .row-name { font-size: 0.85rem; font-weight: 500; }
+    .row-desc { font-size: 0.72rem; color: #889; }
+    .row-right { display: flex; align-items: center; gap: 1rem; }
+
+    .row-bar-wrap { width: 100px; }
+    .row-bar-bg { height: 3px; background: var(--mist); border-radius: 2px; }
+    .row-bar-fill { height: 3px; background: var(--sage); border-radius: 2px; transition: width 1s ease; }
+
+    .row-val { font-size: 0.9rem; font-weight: 600; color: var(--sage); min-width: 40px; text-align: right; }
+    .row-val.zero { color: #ccc; }
+
+    /* ── RECOMMENDATIONS ── */
+    .reco-section {
+      background: var(--ink); border-radius: 2px; padding: 2rem;
+      margin-bottom: 1.5rem;
+      animation: slideIn 0.6s ease 0.4s both;
+    }
+    .reco-title { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; color: white; margin-bottom: 1.2rem; }
+    .reco-list { display: flex; flex-direction: column; gap: 0.8rem; }
+    .reco-item {
+      display: flex; gap: 0.8rem; align-items: flex-start;
+      padding: 0.8rem 1rem;
+      background: rgba(255,255,255,0.04);
+      border-radius: 2px; border-left: 2px solid var(--sage);
+    }
+    .reco-icon { font-size: 1rem; flex-shrink: 0; }
+    .reco-text { font-size: 0.82rem; color: rgba(255,255,255,0.7); line-height: 1.5; }
+    .reco-text strong { color: white; }
+
+    /* Actions */
+    .actions { display: flex; gap: 1rem; margin-top: 2rem; animation: slideIn 0.6s ease 0.5s both; }
+    .btn-primary {
+      background: var(--sage); color: white;
+      padding: 0.9rem 2rem; border-radius: 2px;
+      text-decoration: none; font-size: 0.88rem; font-weight: 500;
+      transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.4rem;
+    }
+    .btn-primary:hover { background: var(--ink); transform: translateY(-2px); }
+    .btn-ghost {
+      border: 1px solid var(--mist); color: var(--ink);
+      padding: 0.9rem 2rem; border-radius: 2px;
+      text-decoration: none; font-size: 0.88rem; font-weight: 500;
+      transition: all 0.2s; background: white;
+    }
+    .btn-ghost:hover { border-color: var(--sage); color: var(--sage); }
+
+    @media (max-width: 600px) {
+      .metrics-grid { grid-template-columns: 1fr 1fr; }
+      .decision-banner { flex-direction: column; gap: 1.5rem; align-items: flex-start; }
+      nav { padding: 1rem 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">AVORUBY <span>CASH</span></a>
+  <a href="/formulaire" class="nav-new">+ Nouvelle évaluation</a>
+</nav>
+
+<div class="page-wrapper">
+
+  <!-- Decision Banner -->
+  <div class="decision-banner" id="decision-banner">
+    <div class="banner-bg" id="banner-bg-text"></div>
+    <div class="banner-left">
+      <div class="banner-tag">Décision de crédit · AVORUBY CASH</div>
+      <div class="banner-decision" id="banner-decision">—</div>
+      <div class="banner-message" id="banner-message">Chargement…</div>
+    </div>
+    <div class="banner-score">
+      <div class="score-label">Score SABC</div>
+      <div class="score-value" id="score-value">—</div>
+      <div class="score-max">/ 100</div>
+    </div>
+  </div>
+
+  <!-- Mock Notice -->
+  <!-- ===== DONNÉES MOCKÉES — SUPPRIMER CETTE DIV QUAND LE VRAI MODÈLE EST INTÉGRÉ ===== -->
+  <div class="mock-notice" id="mock-notice">
+    ⚠️ <span><strong>Mode démonstration</strong> — Les scores sont simulés. Remplacer <code>mock_predict()</code> dans <code>app.py</code> par le vrai modèle après <code>04_modelisation.ipynb</code>.</span>
+  </div>
+  <!-- ===== FIN NOTICE MOCKÉE ===== -->
+
+  <!-- Metrics -->
+  <div class="metrics-grid">
+    <div class="metric">
+      <span class="metric-label">Culture</span>
+      <span class="metric-value" id="m-culture" style="font-size:1.2rem">—</span>
+    </div>
+    <div class="metric">
+      <span class="metric-label">Superficie</span>
+      <span class="metric-value" id="m-hectares">—</span>
+      <span class="metric-unit">hectares</span>
+    </div>
+    <div class="metric">
+      <span class="metric-label">Production prédite</span>
+      <span class="metric-value" id="m-production">—</span>
+      <span class="metric-unit">kg estimés</span>
+    </div>
+    <div class="metric">
+      <span class="metric-label">Prix estimé</span>
+      <span class="metric-value" id="m-prix">—</span>
+      <span class="metric-unit">MAD / kg</span>
+    </div>
+  </div>
+
+  <!-- Breakdown Γ -->
+  <div class="breakdown">
+    <div class="breakdown-head">
+      <span class="breakdown-title">Décomposition Γ — Résilience technologique</span>
+      <span style="font-family:'Cormorant Garamond',serif; font-size:1.5rem; font-weight:700; color:var(--gold)" id="gamma-total">0.00</span>
+    </div>
+    <div class="breakdown-body">
+      <div class="breakdown-row">
+        <div class="row-left">
+          <span class="row-icon">💧</span>
+          <div>
+            <div class="row-name">Irrigation de précision</div>
+            <div class="row-desc">Poids: 0.25 · FAO SOFA 2022</div>
+          </div>
+        </div>
+        <div class="row-right">
+          <div class="row-bar-wrap"><div class="row-bar-bg"><div class="row-bar-fill" id="bar-irr" style="width:0%"></div></div></div>
+          <span class="row-val" id="val-irr">0.00</span>
+        </div>
+      </div>
+      <div class="breakdown-row">
+        <div class="row-left">
+          <span class="row-icon">☀️</span>
+          <div>
+            <div class="row-name">Énergie solaire</div>
+            <div class="row-desc">Poids: 0.15 · Génération Green 2030</div>
+          </div>
+        </div>
+        <div class="row-right">
+          <div class="row-bar-wrap"><div class="row-bar-bg"><div class="row-bar-fill" id="bar-sol" style="width:0%"></div></div></div>
+          <span class="row-val" id="val-sol">0.00</span>
+        </div>
+      </div>
+      <div class="breakdown-row">
+        <div class="row-left">
+          <span class="row-icon">📡</span>
+          <div>
+            <div class="row-name">Capteurs IoT</div>
+            <div class="row-desc">Poids: 0.20 · CGIAR Digital Agriculture</div>
+          </div>
+        </div>
+        <div class="row-right">
+          <div class="row-bar-wrap"><div class="row-bar-bg"><div class="row-bar-fill" id="bar-iot" style="width:0%"></div></div></div>
+          <span class="row-val" id="val-iot">0.00</span>
+        </div>
+      </div>
+      <div class="breakdown-row">
+        <div class="row-left">
+          <span class="row-icon">🔲</span>
+          <div>
+            <div class="row-name">Filets / Serres</div>
+            <div class="row-desc">Poids: 0.40 · ONCA Maroc 2022</div>
+          </div>
+        </div>
+        <div class="row-right">
+          <div class="row-bar-wrap"><div class="row-bar-bg"><div class="row-bar-fill" id="bar-fil" style="width:0%"></div></div></div>
+          <span class="row-val" id="val-fil">0.00</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recommendations -->
+  <div class="reco-section">
+    <div class="reco-title">Recommandations pour améliorer votre score</div>
+    <div class="reco-list" id="reco-list">
+      <div class="reco-item">
+        <span class="reco-icon">⏳</span>
+        <span class="reco-text">Chargement des recommandations…</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="actions">
+    <a href="/formulaire" class="btn-primary">← Nouvelle évaluation</a>
+    <a href="/" class="btn-ghost">Retour accueil</a>
+  </div>
+</div>
+
+<script>
+  // Charger les résultats depuis sessionStorage
+  const raw = sessionStorage.getItem('avoruby_result');
+
+  if (!raw) {
+    // Pas de données → rediriger vers formulaire
+    window.location.href = '/formulaire';
+  } else {
+    const r = JSON.parse(raw);
+    displayResult(r);
+  }
+
+  function displayResult(r) {
+    // Banner
+    const banner = document.getElementById('decision-banner');
+    banner.className = 'decision-banner banner-' + r.couleur;
+    document.getElementById('banner-bg-text').textContent = r.decision;
+    document.getElementById('banner-decision').textContent = r.decision;
+    document.getElementById('banner-message').textContent = r.message;
+    document.getElementById('score-value').textContent = r.sabc;
+
+    // Mock notice — cacher si données réelles
+    // ===== SUPPRIMER CETTE LIGNE QUAND is_mock = false =====
+    if (!r.is_mock) document.getElementById('mock-notice').style.display = 'none';
+
+    // Metrics
+    document.getElementById('m-culture').textContent = r.culture.replace('_', ' ');
+    document.getElementById('m-hectares').textContent = r.hectares;
+    document.getElementById('m-production').textContent = r.production.toLocaleString('fr-MA');
+    document.getElementById('m-prix').textContent = r.prix_kg;
+
+    // Gamma breakdown
+    document.getElementById('gamma-total').textContent = r.gamma.toFixed(2);
+
+    const irr = r.irrigation ? 0.25 : 0;
+    const sol = r.solaire ? 0.15 : 0;
+    const iot = r.iot > 0 ? 0.20 : 0;
+    const fil = r.filets ? 0.40 : 0;
+
+    setTimeout(() => {
+      setBar('irr', irr, 0.25);
+      setBar('sol', sol, 0.15);
+      setBar('iot', iot, 0.20);
+      setBar('fil', fil, 0.40);
+    }, 300);
+
+    // Recommendations
+    const recos = [];
+    if (!r.irrigation) recos.push({ icon: '💧', text: '<strong>Installer l\'irrigation de précision</strong> — Gain Γ: +0.25. Réduit le stress hydrique et les pertes de rendement en période sèche.' });
+    if (!r.solaire) recos.push({ icon: '☀️', text: '<strong>Ajouter des panneaux solaires</strong> — Gain Γ: +0.15. Réduit la dépendance au réseau et les coûts de pompage.' });
+    if (r.iot === 0) recos.push({ icon: '📡', text: '<strong>Installer des capteurs IoT</strong> — Gain Γ: +0.20. Améliore la précision d\'irrigation et détecte les anomalies en temps réel.' });
+    if (!r.filets) recos.push({ icon: '🔲', text: '<strong>Mettre en place des filets anti-grêle</strong> — Gain Γ: +0.40. Protection maximale contre les aléas climatiques — impact le plus fort sur le score.' });
+    if (recos.length === 0) recos.push({ icon: '✅', text: '<strong>Exploitation optimalement équipée</strong> — Votre score de résilience est maximal. Concentrez-vous sur l\'optimisation des cycles de production.' });
+
+    document.getElementById('reco-list').innerHTML = recos.map(rec =>
+      `<div class="reco-item"><span class="reco-icon">${rec.icon}</span><span class="reco-text">${rec.text}</span></div>`
+    ).join('');
+  }
+
+  function setBar(id, val, max) {
+    const pct = max > 0 ? (val / max * 100) : 0;
+    document.getElementById('bar-' + id).style.width = pct + '%';
+    const el = document.getElementById('val-' + id);
+    el.textContent = val.toFixed(2);
+    el.className = 'row-val' + (val === 0 ? ' zero' : '');
+  }
+</script>
+</body>
+</html>

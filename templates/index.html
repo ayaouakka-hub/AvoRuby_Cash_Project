@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AVORUBY CASH — Scoring Agricole IA</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink: #0d1117;
+      --parchment: #f5f0e8;
+      --sage: #4a7c59;
+      --sage-light: #7aab88;
+      --clay: #c4622d;
+      --gold: #c9a84c;
+      --cream: #faf7f2;
+      --mist: #e8e2d9;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cream);
+      color: var(--ink);
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.2rem 3rem;
+      background: rgba(245,240,232,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--mist);
+    }
+    .nav-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem; font-weight: 700;
+      letter-spacing: 0.05em;
+      color: var(--ink);
+      text-decoration: none;
+    }
+    .nav-logo span { color: var(--sage); }
+    .nav-cta {
+      background: var(--sage);
+      color: white;
+      padding: 0.6rem 1.6rem;
+      border-radius: 2px;
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      transition: background 0.2s;
+    }
+    .nav-cta:hover { background: var(--sage-light); }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-left {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 8rem 4rem 4rem 5rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero-tag {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      font-size: 0.75rem; font-weight: 500;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--sage);
+      margin-bottom: 2rem;
+    }
+    .hero-tag::before {
+      content: '';
+      width: 2rem; height: 1px;
+      background: var(--sage);
+    }
+
+    .hero-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(3rem, 5vw, 5rem);
+      font-weight: 300;
+      line-height: 1.05;
+      color: var(--ink);
+      margin-bottom: 1.5rem;
+    }
+    .hero-title strong {
+      font-weight: 700;
+      color: var(--sage);
+      display: block;
+    }
+
+    .hero-sub {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: #556;
+      max-width: 420px;
+      margin-bottom: 3rem;
+    }
+
+    .hero-actions { display: flex; gap: 1rem; align-items: center; }
+
+    .btn-primary {
+      background: var(--sage);
+      color: white;
+      padding: 1rem 2.5rem;
+      border-radius: 2px;
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      transition: all 0.25s;
+      display: inline-flex; align-items: center; gap: 0.5rem;
+    }
+    .btn-primary:hover {
+      background: var(--ink);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    }
+
+    .btn-ghost {
+      color: var(--ink);
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid var(--ink);
+      padding-bottom: 2px;
+      transition: color 0.2s;
+    }
+    .btn-ghost:hover { color: var(--sage); border-color: var(--sage); }
+
+    /* ── HERO RIGHT — Visual ── */
+    .hero-right {
+      position: relative;
+      background: var(--ink);
+      overflow: hidden;
+    }
+
+    .hero-visual {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* Animated terrain lines */
+    .terrain-svg {
+      width: 100%; height: 100%;
+      opacity: 0.15;
+    }
+
+    .hero-card {
+      position: absolute;
+      background: rgba(245,240,232,0.05);
+      border: 1px solid rgba(245,240,232,0.1);
+      backdrop-filter: blur(8px);
+      border-radius: 4px;
+      padding: 1.5rem 2rem;
+      color: white;
+    }
+
+    .hero-card-main {
+      bottom: 10%; left: 50%; transform: translateX(-50%);
+      width: 280px;
+      animation: floatUp 6s ease-in-out infinite;
+    }
+
+    .hero-card-score {
+      top: 25%; right: 8%;
+      width: 160px;
+      text-align: center;
+      animation: floatUp 6s ease-in-out infinite 2s;
+    }
+
+    @keyframes floatUp {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(-8px); }
+    }
+    .hero-card-score { animation: floatSide 5s ease-in-out infinite 1s; }
+    @keyframes floatSide {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .card-label {
+      font-size: 0.65rem; letter-spacing: 0.15em;
+      text-transform: uppercase; color: var(--sage-light);
+      margin-bottom: 0.3rem;
+    }
+    .card-value {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2rem; font-weight: 700;
+      color: white;
+    }
+    .card-sub { font-size: 0.75rem; color: rgba(255,255,255,0.5); }
+
+    .card-row {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-top: 0.8rem; padding-top: 0.8rem;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .badge-approved {
+      background: rgba(74,124,89,0.3);
+      color: var(--sage-light);
+      border: 1px solid rgba(74,124,89,0.4);
+      padding: 0.2rem 0.7rem;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 500;
+    }
+
+    /* Orbit decorations */
+    .orbit {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid rgba(74,124,89,0.2);
+    }
+    .orbit-1 { width: 400px; height: 400px; top: 50%; left: 50%; transform: translate(-50%,-50%); animation: spin 30s linear infinite; }
+    .orbit-2 { width: 600px; height: 600px; top: 50%; left: 50%; transform: translate(-50%,-50%); animation: spin 50s linear infinite reverse; }
+
+    @keyframes spin { to { transform: translate(-50%,-50%) rotate(360deg); } }
+
+    .orbit-dot {
+      position: absolute;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--sage);
+      top: -3px; left: 50%;
+    }
+
+    /* Diagonal line decoration */
+    .hero-diagonal {
+      position: absolute;
+      top: 0; bottom: 0;
+      left: -2px;
+      width: 1px;
+      background: linear-gradient(to bottom, transparent, var(--gold), transparent);
+      z-index: 3;
+    }
+
+    /* ── STATS BAR ── */
+    .stats-bar {
+      background: var(--ink);
+      padding: 2rem 5rem;
+      display: flex; gap: 0;
+    }
+
+    .stat-item {
+      flex: 1;
+      padding: 0 2rem;
+      border-right: 1px solid rgba(255,255,255,0.08);
+    }
+    .stat-item:first-child { padding-left: 0; }
+    .stat-item:last-child { border-right: none; }
+
+    .stat-number {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.5rem; font-weight: 700;
+      color: var(--gold);
+    }
+    .stat-label {
+      font-size: 0.75rem; color: rgba(255,255,255,0.5);
+      letter-spacing: 0.08em; text-transform: uppercase;
+      margin-top: 0.2rem;
+    }
+
+    /* ── FEATURES ── */
+    .features {
+      padding: 7rem 5rem;
+      background: var(--cream);
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 4rem;
+    }
+    .section-tag {
+      font-size: 0.75rem; letter-spacing: 0.15em;
+      text-transform: uppercase; color: var(--sage);
+      margin-bottom: 1rem;
+    }
+    .section-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 3rem; font-weight: 300;
+      color: var(--ink);
+    }
+    .section-title strong { font-weight: 700; }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      background: var(--mist);
+    }
+
+    .feature-card {
+      background: var(--cream);
+      padding: 2.5rem;
+      transition: background 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    .feature-card:hover { background: white; }
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--sage);
+      transform: scaleX(0);
+      transition: transform 0.3s;
+      transform-origin: left;
+    }
+    .feature-card:hover::before { transform: scaleX(1); }
+
+    .feature-icon {
+      width: 48px; height: 48px;
+      background: var(--sage);
+      border-radius: 2px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 1.5rem;
+      font-size: 1.3rem;
+    }
+
+    .feature-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.4rem; font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 0.8rem;
+    }
+
+    .feature-desc {
+      font-size: 0.88rem;
+      line-height: 1.7;
+      color: #667;
+    }
+
+    /* ── FORMULA SECTION ── */
+    .formula-section {
+      background: var(--ink);
+      padding: 6rem 5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .formula-bg {
+      position: absolute; inset: 0;
+      background: repeating-linear-gradient(
+        -45deg,
+        transparent,
+        transparent 40px,
+        rgba(74,124,89,0.03) 40px,
+        rgba(74,124,89,0.03) 41px
+      );
+    }
+
+    .formula-content {
+      position: relative; z-index: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5rem;
+      align-items: center;
+    }
+
+    .formula-text .section-tag { color: var(--gold); }
+    .formula-text .section-title { color: white; text-align: left; margin-bottom: 0; }
+
+    .formula-box {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 4px;
+      padding: 2.5rem;
+    }
+
+    .formula-eq {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.4rem;
+      color: white;
+      text-align: center;
+      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      line-height: 1.5;
+    }
+    .formula-eq .highlight { color: var(--gold); }
+
+    .formula-vars { display: flex; flex-direction: column; gap: 0.8rem; }
+    .formula-var {
+      display: flex; gap: 1rem; align-items: flex-start;
+    }
+    .var-symbol {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem; font-weight: 700;
+      color: var(--gold);
+      min-width: 2rem;
+    }
+    .var-desc { font-size: 0.8rem; color: rgba(255,255,255,0.5); line-height: 1.5; }
+
+    /* ── CTA SECTION ── */
+    .cta-section {
+      padding: 8rem 5rem;
+      text-align: center;
+      background: var(--parchment);
+      position: relative;
+    }
+
+    .cta-section::before {
+      content: 'AVORUBY';
+      position: absolute;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20vw; font-weight: 700;
+      color: rgba(0,0,0,0.03);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    .cta-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 3.5rem; font-weight: 300;
+      color: var(--ink);
+      margin-bottom: 1.5rem;
+      position: relative;
+    }
+    .cta-sub {
+      font-size: 1rem; color: #667;
+      max-width: 500px; margin: 0 auto 3rem;
+      line-height: 1.7;
+      position: relative;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--ink);
+      padding: 2rem 5rem;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .footer-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.2rem; font-weight: 700;
+      color: white;
+    }
+    .footer-logo span { color: var(--sage-light); }
+    .footer-text { font-size: 0.75rem; color: rgba(255,255,255,0.3); }
+
+    /* ── ANIMATIONS ── */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeIn 0.8s forwards;
+    }
+    @keyframes fadeIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.4s; }
+    .delay-4 { animation-delay: 0.6s; }
+
+    @media (max-width: 900px) {
+      .hero { grid-template-columns: 1fr; }
+      .hero-right { display: none; }
+      .hero-left { padding: 7rem 2rem 4rem; }
+      .stats-bar { padding: 2rem; flex-wrap: wrap; gap: 1.5rem; }
+      .features { padding: 4rem 2rem; }
+      .features-grid { grid-template-columns: 1fr; }
+      .formula-content { grid-template-columns: 1fr; }
+      .formula-section { padding: 4rem 2rem; }
+      nav { padding: 1rem 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">AVORUBY <span>CASH</span></a>
+  <a href="/formulaire" class="nav-cta">Évaluer mon exploitation →</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-left">
+    <div class="hero-tag fade-in delay-1">Scoring Crédit Agricole · IA</div>
+    <h1 class="hero-title fade-in delay-2">
+      Crédit agricole
+      <strong>intelligent.</strong>
+    </h1>
+    <p class="hero-sub fade-in delay-3">
+      AVORUBY CASH évalue la viabilité financière de votre exploitation d'avocat 
+      ou de fruits rouges grâce à l'intelligence artificielle — en quelques secondes.
+    </p>
+    <div class="hero-actions fade-in delay-4">
+      <a href="/formulaire" class="btn-primary">
+        Commencer l'évaluation
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+      <a href="#formule" class="btn-ghost">Voir la formule</a>
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <div class="hero-visual">
+      <div class="orbit orbit-1"><div class="orbit-dot"></div></div>
+      <div class="orbit orbit-2"><div class="orbit-dot"></div></div>
+    </div>
+    <div class="hero-diagonal"></div>
+
+    <div class="hero-card hero-card-main">
+      <div class="card-label">Score SABC</div>
+      <div class="card-value">78.4</div>
+      <div class="card-sub">Exploitation · Agadir · Avocat</div>
+      <div class="card-row">
+        <span class="card-sub">Γ Résilience: 0.80</span>
+        <span class="badge-approved">APPROUVÉ</span>
+      </div>
+    </div>
+
+    <div class="hero-card hero-card-score">
+      <div class="card-label">Prix prédit</div>
+      <div class="card-value" style="font-size:1.5rem">26.5</div>
+      <div class="card-sub">MAD/kg · Avocat EU</div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stat-item fade-in">
+    <div class="stat-number">4</div>
+    <div class="stat-label">Flux de données analysés</div>
+  </div>
+  <div class="stat-item fade-in delay-1">
+    <div class="stat-number">LSTM</div>
+    <div class="stat-label">Modèle de prédiction de prix</div>
+  </div>
+  <div class="stat-item fade-in delay-2">
+    <div class="stat-number">XGBoost</div>
+    <div class="stat-label">Scoring de résilience</div>
+  </div>
+  <div class="stat-item fade-in delay-3">
+    <div class="stat-number">2</div>
+    <div class="stat-label">Cultures · Avocat & Fruits Rouges</div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="features">
+  <div class="section-header">
+    <div class="section-tag">Comment ça marche</div>
+    <h2 class="section-title">Quatre flux, <strong>une décision.</strong></h2>
+  </div>
+
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">📈</div>
+      <h3 class="feature-title">Flux Marché (Et)</h3>
+      <p class="feature-desc">Analyse de la volatilité des prix d'export vers l'Europe et la demande des marchés EU via Trade Map — données mensuelles 2022–2025.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🛡️</div>
+      <h3 class="feature-title">Flux Résilience (Γ)</h3>
+      <p class="feature-desc">Évaluation du niveau technologique de votre exploitation : irrigation de précision, énergie solaire, capteurs IoT, filets et serres.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🌡️</div>
+      <h3 class="feature-title">Flux Environnemental (Ct)</h3>
+      <p class="feature-desc">Stress thermique (VPD) et précipitations analysés via Open-Meteo API pour votre localisation géographique précise.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">💧</div>
+      <h3 class="feature-title">Flux Ressource (Ht)</h3>
+      <p class="feature-desc">Monitoring des niveaux des barrages et humidité des sols via satellite Sentinel-2 (NDWI) en temps réel.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🤖</div>
+      <h3 class="feature-title">Modèle LSTM + XGBoost</h3>
+      <p class="feature-desc">Intelligence artificielle hybride : réseau de neurones récurrents pour les prédictions temporelles, gradient boosting pour le scoring statique.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🏦</div>
+      <h3 class="feature-title">Score SABC Final</h3>
+      <p class="feature-desc">Décision de crédit transparente et justifiée : Approuvé, Conditionnel ou Refusé — avec recommandations d'amélioration.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FORMULA -->
+<section class="formula-section" id="formule">
+  <div class="formula-bg"></div>
+  <div class="formula-content">
+    <div class="formula-text">
+      <div class="section-tag">Transparence algorithmique</div>
+      <h2 class="section-title" style="color:white; text-align:left">
+        La formule <strong>SABC</strong>
+      </h2>
+      <p style="color:rgba(255,255,255,0.5); margin-top:1.5rem; font-size:0.9rem; line-height:1.8;">
+        Notre modèle de scoring est entièrement transparent. Chaque variable est 
+        documentée, chaque poids est justifié par des sources académiques 
+        (FAO SOFA 2022, ONCA Maroc).
+      </p>
+    </div>
+    <div class="formula-box">
+      <div class="formula-eq">
+        SABC = σ(<span class="highlight">Ŷ × Et</span> / <span class="highlight">Ct × (1 − Γ)</span>)
+      </div>
+      <div class="formula-vars">
+        <div class="formula-var">
+          <span class="var-symbol">Ŷ</span>
+          <span class="var-desc">Production prédite (kg/ha × superficie)</span>
+        </div>
+        <div class="formula-var">
+          <span class="var-symbol">Et</span>
+          <span class="var-desc">Prix estimé — Flux Marché (MAD/kg)</span>
+        </div>
+        <div class="formula-var">
+          <span class="var-symbol">Ct</span>
+          <span class="var-desc">Risque brut — Stress environnemental</span>
+        </div>
+        <div class="formula-var">
+          <span class="var-symbol">Γ</span>
+          <span class="var-desc">Résilience technologique [0–1]</span>
+        </div>
+        <div class="formula-var">
+          <span class="var-symbol">σ</span>
+          <span class="var-desc">Normalisation sigmoid [0–100]</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <h2 class="cta-title">Prêt à évaluer<br>votre exploitation ?</h2>
+  <p class="cta-sub">Entrez les caractéristiques de votre ferme et obtenez votre score de crédit agricole en quelques secondes.</p>
+  <a href="/formulaire" class="btn-primary" style="font-size:1rem; padding:1.2rem 3rem;">
+    Démarrer l'évaluation gratuite
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+  </a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">AVORUBY <span>CASH</span></div>
+  <div class="footer-text">Projet IADT · Scoring Crédit Agricole par Intelligence Artificielle · Maroc</div>
+</footer>
+
+</body>
+</html>
