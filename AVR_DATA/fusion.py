@@ -2,78 +2,103 @@ import pandas as pd
 import glob
 import os
 import numpy as np
-# 1. Le dossier qui contient tes paramètres (puisque ton script est dans AVR_DATA)
-chemin_base = 'Nasa_Power'
+from pathlib import Path
 
-# 2. Fonction pour lire et empiler toutes les années d'un dossier
-def empiler_annees(nom_dossier):
+# Path robuste : le dossier où se trouve ce script
+BASE_DIR = Path(__file__).resolve().parent
+chemin_base = BASE_DIR / 'Nasa_Power'
+
+
+def empiler_annees(nom_dossier, colonne_attendue):
+    """
+    Lit tous les CSV d'un sous-dossier NASA Power et les empile.
+    
+    colonne_attendue : nom de la variable attendue (ex: 'ALLSKY_SFC_SW_DWN')
+        Si le fichier contient plus de colonnes que prévu (bug NASA/téléchargement),
+        on ne garde QUE LAT, LON, YEAR, DOY + la colonne attendue.
+    """
     print(f"Traitement du dossier : {nom_dossier}...")
-    
-    # Construire le chemin vers le dossier spécifique (ex: Nasa_Power/All Sky)
-    chemin_dossier = os.path.join(chemin_base, nom_dossier)
-    
-    # Trouver tous les fichiers .csv dans ce dossier
-    fichiers_csv = glob.glob(os.path.join(chemin_dossier, "*.csv"))
-    
+    chemin_dossier = chemin_base / nom_dossier
+    fichiers_csv = glob.glob(str(chemin_dossier / "*.csv"))
+
     if not fichiers_csv:
-        print(f"ATTENTION: Aucun fichier CSV trouvé dans {chemin_dossier}")
+        print(f"  ATTENTION : Aucun CSV trouvé dans {chemin_dossier}")
         return None
 
-    liste_dataframes = []
+    liste_dfs = []
     for fichier in fichiers_csv:
         try:
-            # Note: Les fichiers NASA POWER ont souvent un texte d'explication au début.
-            # Si le code donne une erreur ici, essaie de remplacer cette ligne par :
-            # df = pd.read_csv(fichier, skiprows=14) 
-            # (Remplace 14 par le vrai nombre de lignes de texte avant le tableau dans ton CSV)
             df = pd.read_csv(fichier, skiprows=9)
-            liste_dataframes.append(df)
+            # Garder uniquement les colonnes attendues (évite les doublons T2M/GWETTOP)
+            colonnes_base = ['LAT', 'LON', 'YEAR', 'DOY']
+            if colonne_attendue in df.columns:
+                df = df[colonnes_base + [colonne_attendue]]
+            else:
+                print(f"  ⚠ {os.path.basename(fichier)} : colonne '{colonne_attendue}' absente. "
+                      f"Colonnes trouvées : {list(df.columns)}")
+                continue
+            liste_dfs.append(df)
         except Exception as e:
-            print(f"Erreur lors de la lecture du fichier {fichier}: {e}")
-        
-    # On rassemble toutes les années en un seul grand tableau
-    df_complet = pd.concat(liste_dataframes, ignore_index=True)
+            print(f"  ❌ Erreur sur {os.path.basename(fichier)} : {e}")
+
+    if not liste_dfs:
+        return None
+
+    df_complet = pd.concat(liste_dfs, ignore_index=True)
+    # Dédoublonner au cas où il y aurait des fichiers redondants
+    df_complet = df_complet.drop_duplicates(subset=['LAT', 'LON', 'YEAR', 'DOY'])
+    print(f"  ✅ {len(df_complet)} lignes, colonnes = {list(df_complet.columns)}")
     return df_complet
 
-# 3. Empiler les données pour chaque paramètre
-print("--- DÉBUT DE LA PRÉPARATION DES DONNÉES ---")
-df_as = empiler_annees('All Sky')
-df_rh = empiler_annees('Humidite')
-df_sw = empiler_annees('Humidité du sol')
-df_tm = empiler_annees('Température')
 
-# 4. Fusionner les 4 grands tableaux ensemble
+print("--- DÉBUT DE LA PRÉPARATION DES DONNÉES ---")
+df_as = empiler_annees('All Sky',         'ALLSKY_SFC_SW_DWN')
+df_rh = empiler_annees('Humidite',        'RH2M')
+df_sw = empiler_annees('Humidité du sol', 'GWETTOP')
+df_tm = empiler_annees('Température',     'T2M')
+
+# Vérification : tous les DataFrames doivent être chargés
+for nom, df in [('All Sky', df_as), ('Humidite', df_rh),
+                ('Humidité du sol', df_sw), ('Température', df_tm)]:
+    if df is None:
+        raise SystemExit(f"❌ Impossible de continuer : '{nom}' vide.")
+
 print("\n--- FUSION DES PARAMÈTRES EN COURS ---")
 cles_fusion = ['YEAR', 'DOY', 'LAT', 'LON']
 
-# Fusion étape par étape
-df_final = pd.merge(df_as, df_rh, on=cles_fusion, how='inner')
-df_final = pd.merge(df_final, df_sw, on=cles_fusion, how='inner')
-df_final = pd.merge(df_final, df_tm, on=cles_fusion, how='inner')
+# IMPORTANT : on passe en 'outer' pour garder tous les points spatiaux,
+# puis on drop les NaN à la fin si on veut un jeu complet.
+# Pour ton usage agricole tu veux probablement garder le max d'info -> outer + dropna final optionnel.
+df_final = pd.merge(df_as, df_rh, on=cles_fusion, how='outer')
+df_final = pd.merge(df_final, df_sw, on=cles_fusion, how='outer')
+df_final = pd.merge(df_final, df_tm, on=cles_fusion, how='outer')
+print(f"  Après fusion : {len(df_final)} lignes, colonnes = {list(df_final.columns)}")
 
-df_final = pd.merge(df_final, df_tm, on=cles_fusion, how='inner')
-
-# ========================================================
-# --- NOUVELLE ÉTAPE : NETTOYAGE ET FORMATAGE ---
-# ========================================================
-print("\n--- NETTOYAGE DES DONNÉES EN COURS ---")
-
-# A. Transformer YEAR et DOY en une vraie date (ex: 2021-01-15)
-df_final['Date'] = pd.to_datetime(df_final['YEAR'] * 1000 + df_final['DOY'], format='%Y%j')
-
-# B. Remplacer les valeurs aberrantes de la NASA (-999.0) par du "vide" (NaN)
+print("\n--- NETTOYAGE DES DONNÉES ---")
+# A. Date à partir de YEAR + DOY
+df_final['Date'] = pd.to_datetime(
+    df_final['YEAR'].astype(int) * 1000 + df_final['DOY'].astype(int),
+    format='%Y%j'
+)
+# B. Remplacer -999 par NaN
 df_final = df_final.replace(-999.0, np.nan)
-
-# C. Supprimer définitivement les colonnes YEAR et DOY
+# C. Supprimer YEAR / DOY
 df_final = df_final.drop(columns=['YEAR', 'DOY'])
-
-# D. Réorganiser les colonnes pour mettre 'Date' tout au début du tableau
-colonnes_ordre = ['Date'] + [col for col in df_final.columns if col != 'Date']
+# D. Réorganiser
+colonnes_ordre = ['Date', 'LAT', 'LON'] + \
+                 [c for c in df_final.columns if c not in ('Date', 'LAT', 'LON')]
 df_final = df_final[colonnes_ordre]
+# E. Trier par Date puis LAT/LON pour un fichier propre
+df_final = df_final.sort_values(['Date', 'LAT', 'LON']).reset_index(drop=True)
 
-# ======================
-# 5. Sauvegarder le résultat final
-fichier_sortie = 'Dataset_Nasa_2020_2025.csv'
+# Optionnel : si tu veux SEULEMENT les points où TOUTES les variables existent
+# df_final = df_final.dropna(subset=['ALLSKY_SFC_SW_DWN', 'RH2M', 'GWETTOP', 'T2M'])
+
+fichier_sortie = BASE_DIR / 'Dataset_Nasa_2020_2025.csv'
 df_final.to_csv(fichier_sortie, index=False)
-print(f"\n--- TERMINÉ ! ---")
-print(f"Le fichier final '{fichier_sortie}' a été créé avec succès dans AVR_DATA.")
+
+print(f"\n--- TERMINÉ ---")
+print(f"Fichier : {fichier_sortie}")
+print(f"Shape   : {df_final.shape}")
+print(f"Période : {df_final['Date'].min()} → {df_final['Date'].max()}")
+print(f"NaN par colonne :\n{df_final.isna().sum()}")
