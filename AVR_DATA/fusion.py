@@ -39,7 +39,7 @@ def empiler_annees(nom_dossier, colonne_attendue):
                 continue
             liste_dfs.append(df)
         except Exception as e:
-            print(f"  ❌ Erreur sur {os.path.basename(fichier)} : {e}")
+            print(f"   Erreur sur {os.path.basename(fichier)} : {e}")
 
     if not liste_dfs:
         return None
@@ -47,7 +47,7 @@ def empiler_annees(nom_dossier, colonne_attendue):
     df_complet = pd.concat(liste_dfs, ignore_index=True)
     # Dédoublonner au cas où il y aurait des fichiers redondants
     df_complet = df_complet.drop_duplicates(subset=['LAT', 'LON', 'YEAR', 'DOY'])
-    print(f"  ✅ {len(df_complet)} lignes, colonnes = {list(df_complet.columns)}")
+    print(f"  {len(df_complet)} lignes, colonnes = {list(df_complet.columns)}")
     return df_complet
 
 
@@ -61,7 +61,7 @@ df_tm = empiler_annees('Température',     'T2M')
 for nom, df in [('All Sky', df_as), ('Humidite', df_rh),
                 ('Humidité du sol', df_sw), ('Température', df_tm)]:
     if df is None:
-        raise SystemExit(f"❌ Impossible de continuer : '{nom}' vide.")
+        raise SystemExit(f" Impossible de continuer : '{nom}' vide.")
 
 print("\n--- FUSION DES PARAMÈTRES EN COURS ---")
 cles_fusion = ['YEAR', 'DOY', 'LAT', 'LON']
