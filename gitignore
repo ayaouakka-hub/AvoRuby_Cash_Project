@@ -6,6 +6,7 @@ AVR_DATA/Dataset_Nasa_2020_2025.csv
 models/*.pkl
 models/*.h5
 models/*.keras
+models/*.pt
 
 # Python
 __pycache__/
@@ -25,7 +26,6 @@ env/
 
 # Jupyter
 .ipynb_checkpoints/
-*.ipynb_checkpoints
 
 # Variables d'environnement
 .env
@@ -36,6 +36,5 @@ env/
 Thumbs.db
 
 # IDE
-.vscode/
 .idea/
 *.swp
